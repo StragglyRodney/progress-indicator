@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Progress Indicator</title>
+  <script src="https://unpkg.com/vue"></script>
+</head>
+<body>
+
+<style lang="scss" scoped>@import 'style.css';</style>
+
+<div id="app">
+  <div class="container">
+    <div class="progress-bg"></div>
+    <div :style="barStyle" class="progress-bar"></div>
+    <div :style="ballStyle" class="progress-ball"></div>
+
+    <div v-for="(card, index) in cards"
+         :key="index"
+         class="card"
+         :style="getCardColor(index + 1)"
+         :class="getCardClass(index + 1)">
+      <h3>{{card.title}}</h3>
+      <p>{{card.description}}</p>
+    </div>
+
+  </div>
+
+  <div class="buttons">
+    <button v-on:click="goPrev">Prev</button>
+    <button v-on:click="goNext">Next</button>
+    <p>step: {{currentStep}}</p>
+  </div>
+
+</div>
+
+  <script>
+    const hslColorBlue = {
+      h: 210.3,
+      s: 54.6,
+      l: 40.6
+    };
+    const cards = [
+    {
+      title: 'Step 1',
+      description: 'Sign up'
+    },
+    {
+      title: 'Step 2',
+      description: 'Create a store'
+    },
+    {
+      title: 'Step 3',
+      description: 'Add your staff'
+    },
+    {
+      title: 'Step 4',
+      description: 'Create a roster'
+    }
+    ]
+
+new Vue({
+  el: '#app',
+  data: {
+    currentStep: 0, // here we will track the current card
+    cards: cards
+  },
+  computed: {
+    totalSteps () {
+      return this.cards.length
+    },
+    barStyle () {
+      return {
+        width: this.barWidth
+      }
+    },
+    barWidth () {
+      const step = (100 / this.totalSteps)
+      const stepHalf = step / 2
+
+      // sets width to match the center of the card
+      const target = (step * this.currentStep) - stepHalf
+      // keep width between 0 - 100
+      const width = Math.max(Math.min(target, 100), 0)
+      return `${width}%`
+    },
+    ballStyle () {
+      const isVisible = this.currentStep && !this.allStepsDone
+      const opacity = isVisible ? 1 : 0
+      return {
+        left: `calc(${this.barWidth} - 6px)`,
+        opacity: opacity,
+      }
+    },
+    allStepsDone() {
+      return this.currentStep>this.totalSteps
+    }
+  },
+  methods: {
+    getCardClass(cardIndex) {
+      if(cardIndex===this.currentStep) return 'active'
+      if(cardIndex<this.currentStep) return 'done'
+      return ''
+    },
+    goPrev() {
+      if(this.currentStep>0){
+        this.currentStep--
+      }
+    },
+    goNext() {
+      if(this.currentStep<=this.totalSteps){
+        this.currentStep++
+      }
+    },
+    getCardColor(cardIndex) {
+      // step not done yet
+      if(cardIndex>=this.currentStep) {
+        return
+      }
+
+      const {h,s,l} = hslColorBlue
+      if(this.allStepsDone){
+        // return the base color when all steps are done
+        return {
+          backgroundColor: `hsl(${h}, ${s}%, ${l}%)`
+        }
+      }
+
+      const lightnessRange = 15
+      const step = (lightnessRange / this.currentStep) * cardIndex
+      const newL = l + step
+      return {
+        backgroundColor: `hsl(${h}, ${s}%, ${newL}%)`
+      }
+    }
+  }
+});
+  </script>
+</body>
+</html>
